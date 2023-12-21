@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pyodide Test</title>
+    <!-- Load Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.18.1/full/pyodide.js"></script>
+</head>
+<body>
+    <h1>Pyodide in the Browser</h1>
+
+    <!-- Python Code Input -->
+    <textarea id="code" rows="10" cols="50">
+print("Hello from Python in the browser!")
+    </textarea><br>
+
+    <!-- Run Button -->
+    <button onclick="runPython()">Run Python Code</button>
+
+    <!-- Output -->
+    <pre id="output"></pre>
+
+    <script>
+        async function loadPyodideAndPackages() {
+            window.pyodide = await loadPyodide({
+                indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.1/full/"
+            });
+        }
+
+        // Function to Run Python Code
+        async function runPython() {
+            let code = document.getElementById('code').value;
+            try {
+                let output = await pyodide.runPythonAsync(code);
+                document.getElementById('output').textContent = output;
+            } catch (err) {
+                document.getElementById('output').textContent = `Error: ${err.message}`;
+            }
+        }
+
+        loadPyodideAndPackages();
+    </script>
+</body>
+</html>
