@@ -1,0 +1,81 @@
+import pygsheets
+import time
+from datetime import datetime
+import dateutil.relativedelta
+import pandas as pd
+from datetime import date
+from pathlib import Path
+import imaplib
+import email
+import os
+from dateutil.parser import parse
+
+def main():
+    # Authorization
+    gc = pygsheets.authorize(service_file=r'D:\Python Files\Python Files\chrome-insight-324521-ee476f424461.json')
+
+    # Open the spreadsheet and the first sheet
+    sh = gc.open("PeakView")
+    wks = sh[0]
+
+    # NON-BDC & BDC: Fact Sheet
+    import_only = ['Import', 'PartsOrder']
+    service = ['Service']
+    column_to_check = 'Lead Source'
+    value_column = 'Lead Source Group'
+    goodleads = [1]
+    # provide email login credentials
+    email_address = "vindealerdownloads@gmx.com"
+    password = "Stauning8927"
+    # Today's Date
+    today = date.today()
+    today1 = today.strftime("%m/%d/%Y")
+    print("Report Ran On:", today1)
+
+    while True:
+        try:
+            # Fetch all the records
+            records = wks.get_all_values(include_tailing_empty=False)
+
+            # Flag to check if a row has been processed
+            row_processed = False
+
+            # Iterate over each row, skipping the header row
+            for i, row in enumerate(records[1:], start=2):  # records[1:] to skip header
+                if len(row) >= 9 and not row_processed:  # Ensure the row has at least nine columns
+                    (dealer_name, dealer_type, checkbox,
+                     performancelink, trendlink, pathname) = (row[0], row[1], row[2], row[6], row[7], row[8])
+
+                    # Convert checkbox value to boolean
+                    checkbox_value = checkbox.lower() == 'true'
+
+                    if checkbox_value:
+                        # Create a dictionary for this row
+                        row_dict = {
+                            'DealerName': dealer_name,
+                            'DealerType': dealer_type,
+                            'PerfLink': performancelink,
+                            'TrendLink': trendlink,
+                            'PATHNAME': pathname
+                        }
+
+                        # Process the row dictionary
+                        print(f"Processing row {i}: {row_dict}")
+
+                        # Your additional logic here
+                        # For example: run_your_code(row_dict)
+
+                        # Uncheck the checkbox and log the time and date
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        wks.update_value(f'C{i}', False)  # Uncheck the checkbox
+                        wks.update_value(f'D{i}', current_time)  # Log the time and date
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        # Wait for a specified time before checking the rows again
+        time.sleep(30)  # 30 seconds delay
+
+
+if __name__ == "__main__":
+    main()
